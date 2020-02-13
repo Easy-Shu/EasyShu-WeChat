@@ -1,7 +1,7 @@
 # 微信公众号【EasyShu】
 
 亲爱的朋友，
-张杰在这里欢迎您加入EasyShu, 如有疑问或者商务合作可添加微信号：EasyCharts，谢谢！由于私人原因，原微信公众号EasyCharts与本人再无关系！
+张杰在这里欢迎您加入EasyShu, 如有疑问或者商务合作可添加微信号：EasyCharts，谢谢！由于私人原因，原微信公众号EasyCharts与本人再无联系！
 
 EasyCharts微信公众号的所有关于R语言、Python和Excel教程都会搬移到新的微信公众号EasyShu。本人《python数据可视化之美》的发售、《Excel数据之美》的更新以及《R语言数据可视化之美》的校正等诸多信息也会发布在新的微信公众号。
 
