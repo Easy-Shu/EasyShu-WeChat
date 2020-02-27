@@ -6,7 +6,7 @@
 EasyCharts微信公众号的所有关于R语言、Python和Excel教程都会搬移到新的微信公众号EasyShu。本人《python数据可视化之美》的发售、《Excel数据之美》的更新以及《R语言数据可视化之美》的校正等诸多信息也会发布在新的微信公众号。
 
 <p>
-    <img src="https://github.com/Easy-Shu/EasyShu-WeChat/blob/master/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7.jpg" alt="微信公众号"  width="300">
+    <img src="https://github.com/Easy-Shu/EasyShu-WeChat/blob/master/%E7%8B%AE%E7%8C%BF%E7%8B%97.png" alt="微信公众号"  width="1000">
 </p>
 
 
