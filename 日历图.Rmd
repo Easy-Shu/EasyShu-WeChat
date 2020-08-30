@@ -1,0 +1,173 @@
+---
+title: "日历图"
+author: "李誉辉"
+date: "2020/8/28"
+output: 
+  html_document:
+    highlight: pygments
+    theme: cerulean
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    number_sections: true
+    df_print: paged
+---
+
+# 引言
+日历图数据结构一般有2个变量：`Date`和`Value`，`value`映射到颜色。   
+
+# `ggTimeSeries`绘图
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+setwd("D:/R/working_documents1")
+library(ggplot2)
+library(data.table) # 数据格式依赖
+library(ggTimeSeries)
+library(RColorBrewer)
+
+# 构造随机数据
+set.seed(2134)
+dat <- data.table(
+  date = seq(as.Date("2016-01-01"), as.Date("2019-12-31"), "days"),
+  ValueCol = runif(1461)
+)
+
+dat[, ValueCol := ValueCol + (strftime(date, "%u") %in% c(6,7)*runif(1)*0.75)
+    ][, ValueCol := ValueCol + (abs(as.numeric(strftime(date, "%m")) - 6.5))*runif(1)*0.75
+      ][, ':='(Year = as.integer(strftime(date, "%Y")), # add new column
+               month = as.integer(strftime(date, "%m")),
+               week = as.integer(strftime(date, "%W")))] # 添加列
+
+MonthLabels <- dat[, list(meanWkofYr = mean(week)), by = c("month")
+                   ][, month := month.abb[month]]
+
+
+```
+
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold", fig.width=12, fig.height=8}
+ggplot(data = dat, aes(date = date, fill = ValueCol)) + 
+  stat_calendar_heatmap() + 
+  scale_fill_gradientn(colours = rev(brewer.pal(11, "Spectral"))) + 
+  scale_y_continuous(name = NULL,
+                     breaks = seq(7, 1, -1), 
+                     labels = c("Mon", "Tue", "Wed", 
+                                "Thu", "Fri", "Sat", "Sun")) + 
+  scale_x_continuous(name = NULL, 
+                     breaks = MonthLabels$meanWkofYr, 
+                     labels = MonthLabels$month, 
+                     expand = c(0,0)) + 
+  facet_wrap(~Year, ncol = 1, strip.position = "right") + 
+  theme(panel.background = element_blank(),
+        panel.border = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 13, face = "plain", color = "black"),
+        axis.line = element_line(colour = "black", size = 0.25),
+        axis.title = element_text(size = 10, face = "plain", color = "black"),
+        axis.text = element_text(size = 10, face = "plain", color = "black"))
+
+
+```
+
+# `geom_tile()`
+使用`ggplot2`通过按月分面，可以绘制以月为单位的日历图。  
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+label_mons <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
+                "Aug", "Sep", "Oct", "Nov", "Dec")
+label_wik <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
+dat19 <- dat[Year == 2017, list(date, ValueCol, month, week)
+             ][, ':='(weekday = as.integer(strftime(date, "%u")), # 周数
+                      yearmonth = strftime(date, "%m%Y"),       # 月数
+                      day = strftime(date, "%d"))              # 天数
+               ][, ':='(monthf = factor(x = month, levels = as.character(1:12),
+                                      labels = label_mons, ordered = TRUE),
+                        weekdayf = factor(x = weekday, levels = 1:7, 
+                                           labels = label_wik, ordered = TRUE),
+                        yearmonthf = factor(x = yearmonth))
+                 ][, ':='(monthweek = 1 + week - min(week)), by = .(monthf)] # 分组聚合
+        
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+label_mons <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", 
+                "Aug", "Sep", "Oct", "Nov", "Dec")
+label_wik <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
+dat19 <- dat[Year == 2017, list(date, ValueCol, month, week)
+             ][, ':='(weekday = as.integer(strftime(date, "%u")), # 周数
+                      day = strftime(date, "%d"))              # 天数
+               ][, ':='(monthf = factor(x = month, levels = as.character(1:12),
+                                      labels = label_mons, ordered = TRUE),
+                        weekdayf = factor(x = weekday, levels = 1:7, 
+                                           labels = label_wik, ordered = TRUE))
+                 ][, ':='(monthweek = 1 + week - min(week)), by = .(monthf)] # 分组聚合
+        
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold", fig.width=12, fig.height=8}
+ggplot(dat19, aes(weekdayf, monthweek, fill = ValueCol)) + 
+  geom_tile(color = "white") + 
+  geom_text(aes(label = day), size = 3) + 
+  scale_fill_gradientn(colours = rev(brewer.pal(11, "Spectral"))) + 
+  facet_wrap(~monthf, nrow = 3) + 
+  scale_y_reverse(name = "Week of the month") + 
+  xlab("Day") +
+  theme(strip.text = element_text(size = 11, face = "plain", color = "black"),
+        panel.grid = element_blank())
+
+
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+```{r, max.print = 18, row.print = 6, tidy=FALSE, message=FALSE, results="hold", warning=FALSE, cache=FALSE, fig.show="hold"}
+
+
+
+```
+
+
